@@ -10,6 +10,7 @@ public class EventsubEntity {
     private int total;
     private int max_total_cost;
     private int total_cost;
+    private String secret;
 
     public ObjectId get_id() {
         return _id;
@@ -49,5 +50,13 @@ public class EventsubEntity {
 
     public void setTotal_cost(int total_cost) {
         this.total_cost = total_cost;
+    }
+
+    public String getSecret() {
+        return secret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
     }
 }

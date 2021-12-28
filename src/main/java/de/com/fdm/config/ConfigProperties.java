@@ -17,9 +17,6 @@ public class ConfigProperties {
     @Value("${eventsub.url}")
     private String url;
 
-    @Value("${eventsub.nonce}")
-    private String nonce;
-
     public String getClientId() {
         return clientId;
     }
@@ -50,13 +47,5 @@ public class ConfigProperties {
 
     public void setUrl(String url) {
         this.url = url;
-    }
-
-    public String getNonce() {
-        return nonce;
-    }
-
-    public void setNonce(String nonce) {
-        this.nonce = nonce;
     }
 }

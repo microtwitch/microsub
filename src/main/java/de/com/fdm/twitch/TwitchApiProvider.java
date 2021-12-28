@@ -59,8 +59,11 @@ public class TwitchApiProvider {
         HttpEntity<String> entity = new HttpEntity<>(registrationJson, headers);
 
         ResponseEntity<EventsubEntity> result = this.restTemplate.exchange(TWITCH_EVENTSUB_URL, HttpMethod.POST, entity, EventsubEntity.class);
-        if (result.getBody() != null) {
-            eventsubRepository.save(result.getBody());
+
+        EventsubEntity eventsubEntity = result.getBody();
+        if (eventsubEntity != null) {
+            eventsubEntity.setSecret(config.getSecret());
+            eventsubRepository.save(eventsubEntity);
         }
     }
 

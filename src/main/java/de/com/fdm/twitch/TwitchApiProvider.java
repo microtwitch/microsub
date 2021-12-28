@@ -3,6 +3,7 @@ package de.com.fdm.twitch;
 import com.google.gson.Gson;
 import de.com.fdm.config.ConfigProperties;
 import de.com.fdm.mongo.AuthRepository;
+import de.com.fdm.mongo.EventsubRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -24,6 +25,9 @@ public class TwitchApiProvider {
 
     @Autowired
     private AuthRepository authRepository;
+
+    @Autowired
+    private EventsubRepository eventsubRepository;
 
     public TwitchApiProvider() {
         this.restTemplate = new RestTemplate();
@@ -54,7 +58,10 @@ public class TwitchApiProvider {
         String registrationJson = gson.toJson(registration);
         HttpEntity<String> entity = new HttpEntity<>(registrationJson, headers);
 
-        this.restTemplate.exchange(TWITCH_EVENTSUB_URL, HttpMethod.POST, entity, String.class);
+        ResponseEntity<EventsubEntity> result = this.restTemplate.exchange(TWITCH_EVENTSUB_URL, HttpMethod.POST, entity, EventsubEntity.class);
+        if (result.getBody() != null) {
+            eventsubRepository.save(result.getBody());
+        }
     }
 
     public void deleteEventsub(String broadcasterUserId) {

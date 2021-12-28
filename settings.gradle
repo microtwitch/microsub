@@ -1,0 +1,8 @@
+rootProject.name = 'microsub'
+
+sourceControl {
+    gitRepository("https://github.com/microtwitch/microsub-interface.git") {
+        producesModule("de.com.fdm:microsub-interface")
+    }
+}
+

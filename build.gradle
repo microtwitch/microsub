@@ -1,0 +1,36 @@
+buildscript {
+    ext {
+        springBootVersion = '2.6.2'
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+    }
+}
+
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version "${springBootVersion}"
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
+    implementation("org.springframework.boot:spring-boot-starter-data-mongodb:${springBootVersion}")
+    implementation('net.devh:grpc-server-spring-boot-starter:2.13.0.RELEASE')
+    implementation('com.google.code.gson:gson:2.8.9')
+    implementation('de.com.fdm:microsub-interface') {
+        version {
+            branch = 'master'
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+}

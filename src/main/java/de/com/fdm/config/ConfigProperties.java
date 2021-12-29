@@ -11,6 +11,9 @@ public class ConfigProperties {
     @Value("${eventsub.secret}")
     private String secret;
 
+    @Value("${eventsub.clientSecret}")
+    private String clientSecret;
+
     @Value("${auth.url}")
     private String authUrl;
 
@@ -31,6 +34,14 @@ public class ConfigProperties {
 
     public void setSecret(String secret) {
         this.secret = secret;
+    }
+
+    public String getClientSecret() {
+        return clientSecret;
+    }
+
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
     }
 
     public String getAuthUrl() {

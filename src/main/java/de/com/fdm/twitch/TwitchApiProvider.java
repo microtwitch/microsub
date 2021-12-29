@@ -34,7 +34,7 @@ public class TwitchApiProvider {
     }
 
     public AppToken generateAuth() {
-        String url = String.format(TOKEN_URL_TEMPLATE, config.getClientId(), config.getSecret());
+        String url = String.format(TOKEN_URL_TEMPLATE, config.getClientId(), config.getClientSecret());
 
         ResponseEntity<AppToken> response = this.restTemplate.postForEntity(url, null, AppToken.class);
 

@@ -5,7 +5,6 @@ public class EventsubEvent {
 
     public EventsubEvent() {}
 
-
     private Event event;
 
 

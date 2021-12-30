@@ -5,16 +5,15 @@ import de.com.fdm.grpc.microsub.lib.Deletion;
 import de.com.fdm.grpc.microsub.lib.Empty;
 import de.com.fdm.grpc.microsub.lib.MicrosubGrpc;
 import de.com.fdm.grpc.microsub.lib.Registration;
-import de.com.fdm.mongo.Consumer;
-import de.com.fdm.mongo.ConsumerRepository;
-import de.com.fdm.mongo.EventsubRepository;
-import de.com.fdm.twitch.EventsubEntity;
+import de.com.fdm.db.data.Consumer;
+import de.com.fdm.db.data.Eventsub;
+import de.com.fdm.db.services.ConsumerService;
+import de.com.fdm.db.services.EventsubService;
 import de.com.fdm.twitch.TwitchApiProvider;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.List;
 
 @GrpcService
 public class MicrosubService extends MicrosubGrpc.MicrosubImplBase {
@@ -23,32 +22,24 @@ public class MicrosubService extends MicrosubGrpc.MicrosubImplBase {
     private TwitchApiProvider twitchApiProvider;
 
     @Autowired
-    private ConsumerRepository consumerRepository;
-
-    @Autowired
-    private EventsubRepository eventsubRepository;
+    private ConsumerService consumerService;
 
     @Autowired
     private ConfigProperties config;
 
+    @Autowired
+    private EventsubService eventsubService;
+
     @Override
     public void register(Registration registration, StreamObserver<Empty> responseObserver) {
-        List<EventsubEntity> eventsubEntities = this.eventsubRepository.findAll();
+        Consumer consumer = consumerService.findByCallback(registration.getCallback());
 
-        for (EventsubEntity eventsub : eventsubEntities) {
-            if (eventsub.getData().get(0).getCondition().getBroadcaster_user_id().equals(registration.getId())) {
-                consumerRepository.save(new Consumer(registration.getCallback(), registration.getId()));
-
-                Empty response = Empty.newBuilder().build();
-                responseObserver.onNext(response);
-                responseObserver.onCompleted();
-                return;
-            }
+        if (consumer == null) {
+            consumer = new Consumer(registration.getCallback());
+            this.consumerService.save(consumer);
         }
 
-        this.twitchApiProvider.registerEventsub("channel.follow", registration.getId(), config.getUrl() + "follow");
-
-        consumerRepository.save(new Consumer(registration.getCallback(), registration.getId()));
+        this.twitchApiProvider.registerEventsub("channel.follow", registration.getId(), consumer);
 
         Empty response = Empty.newBuilder().build();
         responseObserver.onNext(response);
@@ -57,32 +48,23 @@ public class MicrosubService extends MicrosubGrpc.MicrosubImplBase {
 
     @Override
     public void delete(Deletion deletion, StreamObserver<Empty> responseObserver) {
-        List<Consumer> consumerList = this.consumerRepository.findAll();
 
-        for (Consumer consumer : consumerList) {
-            if (consumer.getBroadcasterUserId().equals(deletion.getId()) && consumer.getCallback().equals(deletion.getCallback())) {
-                this.consumerRepository.deleteById(consumer.get_id().toString());
-            }
-        }
-        // check if eventsubentity is still needed
-        consumerList = this.consumerRepository.findAll();
-        for (Consumer consumer : consumerList) {
-            if (consumer.getBroadcasterUserId().equals(deletion.getId())) {
-                Empty response = Empty.newBuilder().build();
-                responseObserver.onNext(response);
-                responseObserver.onCompleted();
-                return;
-            }
-        }
-        this.twitchApiProvider.deleteEventsub(deletion.getId());
+        // TODO: change id to condition_id or similar to make intention clear
+        this.eventsubService.deleteConsumer(deletion.getId(), deletion.getCallback());
 
-        List<EventsubEntity> eventsubEntities = this.eventsubRepository.findAll();
-        for (EventsubEntity eventsub: eventsubEntities) {
-            if (eventsub.getData().get(0).getCondition().getBroadcaster_user_id().equals(deletion.getId())) {
-                this.eventsubRepository.deleteById(eventsub.get_id().toString());
-            }
+        Eventsub eventsub = this.eventsubService.findByConditionId(deletion.getId());
+        if (eventsub == null) {
+            Empty response = Empty.newBuilder().build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+            return;
+        }
+        if (!eventsub.hasConsumers()) {
+            this.twitchApiProvider.deleteEventsub(eventsub.getTwitchId());
+            this.eventsubService.delete(eventsub);
         }
 
+        // TODO: delete dangling consumers, preferably via sql directly (cascade)
 
         Empty response = Empty.newBuilder().build();
         responseObserver.onNext(response);

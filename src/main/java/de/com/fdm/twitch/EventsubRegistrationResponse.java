@@ -1,24 +1,13 @@
 package de.com.fdm.twitch;
 
-import org.bson.types.ObjectId;
-
 import java.util.List;
 
-public class EventsubEntity {
-    private ObjectId _id;
+public class EventsubRegistrationResponse {
     private List<EventSub.Data> data;
     private int total;
     private int max_total_cost;
     private int total_cost;
     private String secret;
-
-    public ObjectId get_id() {
-        return _id;
-    }
-
-    public void set_id(ObjectId _id) {
-        this._id = _id;
-    }
 
     public List<EventSub.Data> getData() {
         return data;

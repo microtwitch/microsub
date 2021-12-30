@@ -2,14 +2,16 @@ package de.com.fdm.twitch;
 
 import com.google.gson.Gson;
 import de.com.fdm.config.ConfigProperties;
-import de.com.fdm.mongo.AuthRepository;
-import de.com.fdm.mongo.EventsubRepository;
+import de.com.fdm.db.data.Auth;
+import de.com.fdm.db.data.Consumer;
+import de.com.fdm.db.data.Eventsub;
+import de.com.fdm.db.services.AuthService;
+import de.com.fdm.db.services.ConsumerService;
+import de.com.fdm.db.services.EventsubService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
-import java.util.List;
 
 @Component
 public class TwitchApiProvider {
@@ -24,10 +26,13 @@ public class TwitchApiProvider {
     private ConfigProperties config;
 
     @Autowired
-    private AuthRepository authRepository;
+    private AuthService authService;
 
     @Autowired
-    private EventsubRepository eventsubRepository;
+    private EventsubService eventsubService;
+
+    @Autowired
+    private ConsumerService consumerService;
 
     public TwitchApiProvider() {
         this.restTemplate = new RestTemplate();
@@ -44,63 +49,51 @@ public class TwitchApiProvider {
         return null;
     }
 
-    public void registerEventsub(String type, String userId, String callback) {
-        EventsubRegistration registration = new EventsubRegistration(type, "1", userId, callback, config.getSecret());
+    public void registerEventsub(String type, String userId, Consumer consumer) {
+        EventsubRegistration registration = new EventsubRegistration(type, "1", userId, config.getUrl() + "follow", config.getSecret());
 
-        List<AppToken> tokens = this.authRepository.findAll();
+        Auth auth = this.authService.getAuth();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Client-Id", this.config.getClientId());
-        headers.set("Authorization", "Bearer " + tokens.get(0).getAccess_token());
+        headers.set("Authorization", "Bearer " + auth.getToken());
 
         Gson gson = new Gson();
         String registrationJson = gson.toJson(registration);
         HttpEntity<String> entity = new HttpEntity<>(registrationJson, headers);
 
-        ResponseEntity<EventsubEntity> result = this.restTemplate.exchange(TWITCH_EVENTSUB_URL, HttpMethod.POST, entity, EventsubEntity.class);
+        ResponseEntity<EventsubRegistrationResponse> result = this.restTemplate.exchange(TWITCH_EVENTSUB_URL, HttpMethod.POST, entity, EventsubRegistrationResponse.class);
 
-        EventsubEntity eventsubEntity = result.getBody();
-        if (eventsubEntity != null) {
-            eventsubEntity.setSecret(config.getSecret());
-            eventsubRepository.save(eventsubEntity);
+        EventsubRegistrationResponse eventsubRegistrationResponse = result.getBody();
+
+        if (eventsubRegistrationResponse != null) {
+            eventsubRegistrationResponse.setSecret(config.getSecret());
+
+            Eventsub eventsub = new Eventsub();
+            eventsub.setSecret(config.getSecret());
+            eventsub.setTwitchId(eventsubRegistrationResponse.getData().get(0).getId());
+            eventsub.setBroadcasterUserId(eventsubRegistrationResponse.getData().get(0).getCondition().getBroadcaster_user_id());
+
+            // TODO: this should not save here, rather return
+            eventsubService.save(eventsub);
+            consumer.addEventsub(eventsub);
+            this.consumerService.save(consumer);
         }
     }
 
-    public void deleteEventsub(String broadcasterUserId) {
-        String deletionId = "";
-        for (EventSub.Data data: getEventsubs().getData()) {
-            if (data.getCondition().getBroadcaster_user_id().equals(broadcasterUserId)) {
-                deletionId = data.getId();
-            }
-        }
-
-        List<AppToken> tokens = this.authRepository.findAll();
+    public void deleteEventsub(String twitchId) {
+        Auth auth = this.authService.getAuth();
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Client-Id", this.config.getClientId());
-        headers.set("Authorization", "Bearer " + tokens.get(0).getAccess_token());
+        headers.set("Authorization", "Bearer " + auth.getToken());
 
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
 
-        String deletionUrl = TWITCH_EVENTSUB_URL + "?id=" + deletionId;
+        String deletionUrl = TWITCH_EVENTSUB_URL + "?id=" + twitchId;
 
         this.restTemplate.exchange(deletionUrl, HttpMethod.DELETE, entity, String.class);
-    }
-
-    private EventSub getEventsubs() {
-        List<AppToken> tokens = this.authRepository.findAll();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Client-Id", this.config.getClientId());
-        headers.set("Authorization", "Bearer " + tokens.get(0).getAccess_token());
-
-        HttpEntity<String> entity = new HttpEntity<>(null, headers);
-
-        ResponseEntity<EventSub> eventSubs = this.restTemplate.exchange(TWITCH_EVENTSUB_URL, HttpMethod.GET, entity, EventSub.class);
-
-        return eventSubs.getBody();
     }
 }

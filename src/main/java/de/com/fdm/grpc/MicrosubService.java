@@ -64,7 +64,11 @@ public class MicrosubService extends MicrosubGrpc.MicrosubImplBase {
             this.eventsubService.delete(eventsub);
         }
 
-        // TODO: delete dangling consumers, preferably via sql directly (cascade)
+        for (Consumer consumer : consumerService.findAll()) {
+            if (consumer.getEventsubs().size() == 0) {
+                consumerService.delete(consumer);
+            }
+        }
 
         Empty response = Empty.newBuilder().build();
         responseObserver.onNext(response);

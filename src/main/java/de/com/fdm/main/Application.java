@@ -10,11 +10,13 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import de.com.fdm.twitch.TwitchApiProvider;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 @SpringBootApplication(scanBasePackages = "de.com.fdm.*")
 @EnableJpaRepositories(basePackages = "de.com.fdm.db.repositories")
 @EntityScan(basePackages = "de.com.fdm.db.data")
+@EnableScheduling
 public class Application {
 
     @Autowired

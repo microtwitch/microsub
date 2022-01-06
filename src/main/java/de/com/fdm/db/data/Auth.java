@@ -1,5 +1,7 @@
 package de.com.fdm.db.data;
 
+import de.com.fdm.twitch.TwitchApiProvider;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -20,9 +22,6 @@ public class Auth {
 
     @Column(name = "token")
     private String token;
-
-    @Column(name = "refresh_token")
-    private String refreshToken;
 
     @Column(name = "expires_in")
     private Long expiresIn;
@@ -46,14 +45,6 @@ public class Auth {
         this.token = token;
     }
 
-    public String getRefreshToken() {
-        return refreshToken;
-    }
-
-    public void setRefreshToken(String refreshToken) {
-        this.refreshToken = refreshToken;
-    }
-
     public Long getExpiresIn() {
         return expiresIn;
     }
@@ -70,7 +61,11 @@ public class Auth {
         this.createdAt = createdAt;
     }
 
-    public boolean isExpired() {
-        return (this.createdAt + this.expiresIn + EXPIRE_BUFFER) > Instant.now().getEpochSecond();
+    public boolean isValid() {
+        TwitchApiProvider twitchApiProvider = new TwitchApiProvider();
+        boolean isInvalid = twitchApiProvider.isInvalid(this);
+        boolean isExpired = (this.createdAt + this.expiresIn + EXPIRE_BUFFER) > Instant.now().getEpochSecond();
+
+        return !isInvalid && !isExpired;
     }
 }

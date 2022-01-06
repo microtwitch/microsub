@@ -18,7 +18,6 @@ public class AuthService {
     public void saveApptoken(AppToken token) {
         Auth auth = new Auth();
         auth.setToken(token.getAccess_token());
-        auth.setRefreshToken(token.getRefresh_token());
         auth.setExpiresIn(token.getExpires_in());
         auth.setCreatedAt(Instant.now().getEpochSecond());
 
@@ -46,6 +45,6 @@ public class AuthService {
             return false;
         }
 
-        return auth.isExpired();
+        return auth.isValid();
     }
 }

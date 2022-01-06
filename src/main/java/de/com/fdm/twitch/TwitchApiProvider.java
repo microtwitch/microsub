@@ -11,6 +11,7 @@ import de.com.fdm.db.services.EventsubService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -19,6 +20,7 @@ public class TwitchApiProvider {
             "https://id.twitch.tv/oauth2/token?client_id=%s&client_secret=%s&grant_type=client_credentials";
 
     private static final String TWITCH_EVENTSUB_URL = "https://api.twitch.tv/helix/eventsub/subscriptions";
+    private static final String VALIDATE_URL = "https://id.twitch.tv/oauth2/validate";
 
     private final RestTemplate restTemplate;
 
@@ -95,5 +97,18 @@ public class TwitchApiProvider {
         String deletionUrl = TWITCH_EVENTSUB_URL + "?id=" + twitchId;
 
         this.restTemplate.exchange(deletionUrl, HttpMethod.DELETE, entity, String.class);
+    }
+
+    public boolean isInvalid(Auth auth) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "Bearer " + auth.getToken());
+
+        HttpEntity<String> entity = new HttpEntity<>(null, headers);
+        try {
+            this.restTemplate.exchange(VALIDATE_URL, HttpMethod.GET, entity, String.class);
+        } catch (HttpClientErrorException e) {
+            return true;
+        }
+        return false;
     }
 }

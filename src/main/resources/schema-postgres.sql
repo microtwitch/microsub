@@ -1,4 +1,4 @@
---DROP TABLE IF EXISTS auth;
+DROP TABLE IF EXISTS auth;
 DROP TABLE IF EXISTS consumer_eventsub;
 DROP TABLE IF EXISTS consumer;
 DROP TABLE IF EXISTS eventsub;

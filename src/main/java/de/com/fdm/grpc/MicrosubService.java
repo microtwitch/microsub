@@ -12,20 +12,20 @@ import de.com.fdm.db.services.EventsubService;
 import de.com.fdm.twitch.TwitchApiProvider;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 
 @GrpcService
 public class MicrosubService extends MicrosubGrpc.MicrosubImplBase {
+    Logger logger = LoggerFactory.getLogger(MicrosubService.class);
 
     @Autowired
     private TwitchApiProvider twitchApiProvider;
 
     @Autowired
     private ConsumerService consumerService;
-
-    @Autowired
-    private ConfigProperties config;
 
     @Autowired
     private EventsubService eventsubService;
@@ -35,11 +35,22 @@ public class MicrosubService extends MicrosubGrpc.MicrosubImplBase {
         Consumer consumer = consumerService.findByCallback(registration.getCallback());
 
         if (consumer == null) {
-            consumer = new Consumer(registration.getCallback());
-            this.consumerService.save(consumer);
+            consumer = consumerService.save(new Consumer(registration.getCallback()));
         }
 
-        this.twitchApiProvider.registerEventsub("channel.follow", registration.getId(), consumer);
+        for (Eventsub eventsub : consumer.getEventsubs()) {
+            if (eventsub.getType() == registration.getType() && eventsub.getBroadcasterUserId().equals(registration.getId())) {
+                Empty response = Empty.newBuilder().build();
+                responseObserver.onNext(response);
+                responseObserver.onCompleted();
+                logger.info("Eventsub already registered: callback={}, id={}, type={}", registration.getCallback(), registration.getId(), registration.getType());
+                return;
+            }
+        }
+
+        Eventsub eventsub = this.twitchApiProvider.registerEventsub(registration.getType(), registration.getId(), consumer);
+        consumer.addEventsub(eventsub);
+        consumerService.save(consumer);
 
         Empty response = Empty.newBuilder().build();
         responseObserver.onNext(response);
@@ -74,5 +85,4 @@ public class MicrosubService extends MicrosubGrpc.MicrosubImplBase {
         responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
-
 }

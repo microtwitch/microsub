@@ -1,7 +1,11 @@
-DROP TABLE IF EXISTS auth;
+--DROP TABLE IF EXISTS auth;
 DROP TABLE IF EXISTS consumer_eventsub;
 DROP TABLE IF EXISTS consumer;
 DROP TABLE IF EXISTS eventsub;
+DROP TYPE IF EXISTS eventsub_type CASCADE;
+
+CREATE TYPE eventsub_type as ENUM ('SUB', 'FOLLOW');
+CREATE CAST (character varying as eventsub_type) WITH INOUT AS IMPLICIT;
 
 CREATE TABLE auth (
     auth_id serial PRIMARY KEY,
@@ -20,7 +24,8 @@ CREATE TABLE eventsub (
     eventsub_id serial PRIMARY KEY,
     secret VARCHAR(255) NOT NULL,
     twitch_id VARCHAR(255) NOT NULL UNIQUE,
-    broadcaster_user_id VARCHAR(255) NOT NULL
+    broadcaster_user_id VARCHAR(255) NOT NULL,
+    type eventsub_type NOT NULL
 );
 
 CREATE TABLE consumer_eventsub (

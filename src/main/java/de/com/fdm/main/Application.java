@@ -1,7 +1,7 @@
 package de.com.fdm.main;
 
 import de.com.fdm.db.services.AuthService;
-import de.com.fdm.twitch.AppToken;
+import de.com.fdm.twitch.data.AppToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

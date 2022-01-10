@@ -1,7 +1,7 @@
 package de.com.fdm.crons;
 
 import de.com.fdm.db.services.AuthService;
-import de.com.fdm.twitch.AppToken;
+import de.com.fdm.twitch.data.AppToken;
 import de.com.fdm.twitch.TwitchApiProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;

@@ -2,7 +2,7 @@ package de.com.fdm.db.services;
 
 import de.com.fdm.db.data.Auth;
 import de.com.fdm.db.repositories.AuthRepository;
-import de.com.fdm.twitch.AppToken;
+import de.com.fdm.twitch.data.AppToken;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

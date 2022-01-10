@@ -1,8 +1,12 @@
 package de.com.fdm.db.data;
 
+import de.com.fdm.grpc.microsub.lib.Type;
+
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
+import javax.persistence.Enumerated;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -30,6 +34,10 @@ public class Eventsub {
 
     @Column(name = "broadcaster_user_id")
     private String broadcasterUserId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
+    private Type type;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
@@ -89,5 +97,13 @@ public class Eventsub {
 
     public boolean hasConsumers() {
         return this.consumers.size() != 0;
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
     }
 }

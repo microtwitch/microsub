@@ -17,8 +17,8 @@ public class ConsumerService {
         return this.consumerRepository.findByCallback(callback);
     }
 
-    public void save(Consumer consumer) {
-        this.consumerRepository.save(consumer);
+    public Consumer save(Consumer consumer) {
+        return this.consumerRepository.save(consumer);
     }
 
     public List<Consumer> findAll() {

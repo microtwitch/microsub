@@ -3,14 +3,18 @@ package de.com.fdm.controller;
 import com.google.gson.Gson;
 import de.com.fdm.auth.AuthProvider;
 import de.com.fdm.grpc.MicrosubClientManager;
-import de.com.fdm.grpc.microsub.lib.EventsubMessage;
 import de.com.fdm.db.data.Consumer;
 import de.com.fdm.db.data.Eventsub;
 import de.com.fdm.db.repositories.ConsumerRepository;
 import de.com.fdm.db.services.EventsubService;
-import de.com.fdm.twitch.EventsubEvent;
+import de.com.fdm.grpc.microsub.lib.EventsubMessage;
+import de.com.fdm.grpc.microsub.lib.Type;
+import de.com.fdm.twitch.data.FollowEvent;
+import de.com.fdm.twitch.data.SubEvent;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -18,6 +22,7 @@ import java.util.Map;
 
 @RestController
 public class Controller {
+    Logger logger = LoggerFactory.getLogger(Controller.class);
 
     @Autowired
     private AuthProvider authProvider;
@@ -39,27 +44,27 @@ public class Controller {
     @PostMapping("/follow")
     public String followEvents(@RequestBody String body, @RequestHeader Map<String, String> headers) {
         Gson gson = new Gson();
-        EventsubEvent eventsubEvent = gson.fromJson(body, EventsubEvent.class);
+        FollowEvent followEvent = gson.fromJson(body, FollowEvent.class);
 
-        if (eventsubEvent.getChallenge() != null) {
-            return eventsubEvent.getChallenge();
+        if (followEvent.getChallenge() != null) {
+            return followEvent.getChallenge();
         }
 
 
-        if (!verifySignature(body, headers, eventsubEvent)) {
+        if (!verifySignature(body, headers, followEvent.getSubscription().getId())) {
             return "";
         }
 
         EventsubMessage msg = EventsubMessage
                 .newBuilder()
-                .setBroadcasterUserId(eventsubEvent.getEvent().getBroadcaster_user_id())
-                .setBroadcasterUserName(eventsubEvent.getEvent().getBroadcaster_user_name())
-                .setEventType(eventsubEvent.getSubscription().getType())
-                .setEventUserId(eventsubEvent.getEvent().getUser_id())
-                .setEventUserName(eventsubEvent.getEvent().getUser_name())
+                .setBroadcasterUserId(followEvent.getEvent().getBroadcaster_user_id())
+                .setBroadcasterUserName(followEvent.getEvent().getBroadcaster_user_name())
+                .setEventUserId(followEvent.getEvent().getUser_id())
+                .setEventType(Type.FOLLOW)
+                .setEventUserName(followEvent.getEvent().getUser_name())
                 .build();
 
-        Eventsub eventsub = this.eventsubService.findByTwitchId(eventsubEvent.getSubscription().getId());
+        Eventsub eventsub = this.eventsubService.findByTwitchId(followEvent.getSubscription().getId());
 
         for (Consumer consumer : eventsub.getConsumers()) {
             this.clientManager.sendMessage(msg, consumer.getCallback());
@@ -68,9 +73,44 @@ public class Controller {
         return "";
     }
 
-    private boolean verifySignature(String request, Map<String, String> headers, EventsubEvent eventsubEvent) {
+    @PostMapping("/sub")
+    public String subEvents(@RequestBody String body, @RequestHeader Map<String, String> headers) {
+        Gson gson = new Gson();
+        SubEvent subEvent = gson.fromJson(body, SubEvent.class);
+
+        if (subEvent.getChallenge() != null) {
+            return subEvent.getChallenge();
+        }
+
+        if (!verifySignature(body, headers, subEvent.getSubscription().getId())) {
+            return "";
+        }
+
+        EventsubMessage msg = EventsubMessage
+                .newBuilder()
+                .setBroadcasterUserId(subEvent.getEvent().getBroadcaster_user_id())
+                .setBroadcasterUserName(subEvent.getEvent().getBroadcaster_user_name())
+                .setEventUserId(subEvent.getEvent().getUser_id())
+                .setEventType(Type.SUB)
+                .setEventUserName(subEvent.getEvent().getUser_name())
+                .build();
+
+        logger.info("Eventsub payload received: {}", msg);
+
+        Eventsub eventsub = this.eventsubService.findByTwitchId(subEvent.getSubscription().getId());
+
+        for (Consumer consumer : eventsub.getConsumers()) {
+            this.clientManager.sendMessage(msg, consumer.getCallback());
+        }
+
+        this.clientManager.sendMessage(msg, "localhost:8081");
+
+        return "";
+    }
+
+    private boolean verifySignature(String request, Map<String, String> headers, String id) {
         String hmacMessage = this.getHmacMessage(request, headers);
-        String secret = this.eventsubService.findSecret(eventsubEvent.getSubscription().getId());
+        String secret = this.eventsubService.findSecret(id);
         String hmac = new HmacUtils(HmacAlgorithms.HMAC_SHA_256, secret).hmacHex(hmacMessage);
         hmac = "sha256=" + hmac;
 

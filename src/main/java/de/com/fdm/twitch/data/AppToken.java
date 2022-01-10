@@ -1,4 +1,4 @@
-package de.com.fdm.twitch;
+package de.com.fdm.twitch.data;
 
 
 public class AppToken {

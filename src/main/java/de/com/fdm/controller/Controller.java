@@ -86,6 +86,8 @@ public class Controller {
             return "";
         }
 
+        logger.info("Eventsub payload received: {}", body);
+
         EventsubMessage msg = EventsubMessage
                 .newBuilder()
                 .setBroadcasterUserId(subEvent.getEvent().getBroadcaster_user_id())
@@ -93,9 +95,8 @@ public class Controller {
                 .setEventUserId(subEvent.getEvent().getUser_id())
                 .setEventType(Type.SUB)
                 .setEventUserName(subEvent.getEvent().getUser_name())
+                .setIsGift(subEvent.getEvent().isGift())
                 .build();
-
-        logger.info("Eventsub payload received: {}", msg);
 
         Eventsub eventsub = this.eventsubService.findByTwitchId(subEvent.getSubscription().getId());
 

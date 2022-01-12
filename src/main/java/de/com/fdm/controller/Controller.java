@@ -31,9 +31,6 @@ public class Controller {
     private MicrosubClientManager clientManager;
 
     @Autowired
-    private ConsumerRepository consumerRepository;
-
-    @Autowired
     private EventsubService eventsubService;
 
     @GetMapping("/auth/url")
@@ -54,6 +51,8 @@ public class Controller {
         if (!verifySignature(body, headers, followEvent.getSubscription().getId())) {
             return "";
         }
+
+        logger.info("Eventsub payload received: {}", body);
 
         EventsubMessage msg = EventsubMessage
                 .newBuilder()
@@ -103,8 +102,6 @@ public class Controller {
         for (Consumer consumer : eventsub.getConsumers()) {
             this.clientManager.sendMessage(msg, consumer.getCallback());
         }
-
-        this.clientManager.sendMessage(msg, "localhost:8081");
 
         return "";
     }

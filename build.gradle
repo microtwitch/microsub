@@ -21,17 +21,8 @@ repositories {
 
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web:${springBootVersion}")
-    implementation('net.devh:grpc-server-spring-boot-starter:2.13.0.RELEASE')
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa:${springBootVersion}")
-    implementation('org.postgresql:postgresql:42.3.1')
     implementation('javax.xml.bind:jaxb-api:2.4.0-b180830.0359')
     implementation('com.google.code.gson:gson:2.8.9')
-    implementation('commons-codec:commons-codec:1.15')
-    implementation('de.com.fdm:microsub-interface') {
-        version {
-            branch = 'master'
-        }
-    }
 }
 
 test {

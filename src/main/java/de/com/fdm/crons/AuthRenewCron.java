@@ -1,7 +1,7 @@
 package de.com.fdm.crons;
 
-import de.com.fdm.db.services.AuthService;
-import de.com.fdm.twitch.data.AppToken;
+import de.com.fdm.twitch.AuthService;
+import de.com.fdm.twitch.data.Auth;
 import de.com.fdm.twitch.TwitchApiProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -21,9 +21,8 @@ public class AuthRenewCron {
     @Scheduled(timeUnit = TimeUnit.SECONDS, fixedRate = 30, initialDelay = 60)
     public void renewAuth() {
         if (!authService.hasAuth()) {
-            AppToken appToken = twitchApiProvider.generateAuth();
-            authService.clear();
-            authService.saveApptoken(appToken);
+            Auth auth = twitchApiProvider.generateAuth();
+            authService.saveAuth(auth);
         }
     }
 }

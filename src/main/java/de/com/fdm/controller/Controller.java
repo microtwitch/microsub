@@ -2,22 +2,17 @@ package de.com.fdm.controller;
 
 import com.google.gson.Gson;
 import de.com.fdm.auth.AuthProvider;
-import de.com.fdm.grpc.MicrosubClientManager;
-import de.com.fdm.db.data.Consumer;
-import de.com.fdm.db.data.Eventsub;
-import de.com.fdm.db.repositories.ConsumerRepository;
-import de.com.fdm.db.services.EventsubService;
-import de.com.fdm.grpc.microsub.lib.EventsubMessage;
-import de.com.fdm.grpc.microsub.lib.Type;
+import de.com.fdm.eventsub.EventsubConsumer;
+import de.com.fdm.eventsub.EventsubService;
 import de.com.fdm.twitch.data.FollowEvent;
 import de.com.fdm.twitch.data.SubEvent;
-import org.apache.commons.codec.digest.HmacAlgorithms;
-import org.apache.commons.codec.digest.HmacUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 @RestController
@@ -28,7 +23,7 @@ public class Controller {
     private AuthProvider authProvider;
 
     @Autowired
-    private MicrosubClientManager clientManager;
+    private EventsubConsumer eventsubConsumer;
 
     @Autowired
     private EventsubService eventsubService;
@@ -47,27 +42,17 @@ public class Controller {
             return followEvent.getChallenge();
         }
 
+        System.out.println("test1");
 
         if (!verifySignature(body, headers, followEvent.getSubscription().getId())) {
             return "";
         }
 
+        System.out.println("test2");
+
         logger.info("Eventsub payload received: {}", body);
 
-        EventsubMessage msg = EventsubMessage
-                .newBuilder()
-                .setBroadcasterUserId(followEvent.getEvent().getBroadcaster_user_id())
-                .setBroadcasterUserName(followEvent.getEvent().getBroadcaster_user_name())
-                .setEventUserId(followEvent.getEvent().getUser_id())
-                .setEventType(Type.FOLLOW)
-                .setEventUserName(followEvent.getEvent().getUser_name())
-                .build();
-
-        Eventsub eventsub = this.eventsubService.findByTwitchId(followEvent.getSubscription().getId());
-
-        for (Consumer consumer : eventsub.getConsumers()) {
-            this.clientManager.sendMessage(msg, consumer.getCallback());
-        }
+        eventsubConsumer.consume(followEvent);
 
         return "";
     }
@@ -87,31 +72,22 @@ public class Controller {
 
         logger.info("Eventsub payload received: {}", body);
 
-        EventsubMessage msg = EventsubMessage
-                .newBuilder()
-                .setBroadcasterUserId(subEvent.getEvent().getBroadcaster_user_id())
-                .setBroadcasterUserName(subEvent.getEvent().getBroadcaster_user_name())
-                .setEventUserId(subEvent.getEvent().getUser_id())
-                .setEventType(Type.SUB)
-                .setEventUserName(subEvent.getEvent().getUser_name())
-                .setIsGift(subEvent.getEvent().isGift())
-                .build();
-
-        Eventsub eventsub = this.eventsubService.findByTwitchId(subEvent.getSubscription().getId());
-
-        for (Consumer consumer : eventsub.getConsumers()) {
-            this.clientManager.sendMessage(msg, consumer.getCallback());
-        }
+        eventsubConsumer.consume(subEvent);
 
         return "";
     }
 
     private boolean verifySignature(String request, Map<String, String> headers, String id) {
         String hmacMessage = this.getHmacMessage(request, headers);
-        String secret = this.eventsubService.findSecret(id);
-        String hmac = new HmacUtils(HmacAlgorithms.HMAC_SHA_256, secret).hmacHex(hmacMessage);
-        hmac = "sha256=" + hmac;
-
+        String secret = this.eventsubService.getSecret(id);
+        MessageDigest digest;
+        try {
+            digest = MessageDigest.getInstance("SHA-256");
+        } catch (NoSuchAlgorithmException e) {
+            return false;
+        }
+        digest.update(secret.getBytes());
+        String hmac = "sha256=" + digest.digest(hmacMessage.getBytes()).toString();
         return hmac.equals(headers.get("twitch-eventsub-message-signature"));
     }
 

@@ -1,17 +1,17 @@
 package de.com.fdm.twitch.data;
 
 
-public class AppToken {
+public class Auth {
     private String access_token;
     private String refresh_token;
     private long expires_in;
     private String scope;
     private String token_type;
 
-    public AppToken() {
+    public Auth() {
     }
 
-    public String getAccess_token() {
+    public String getAccessToken() {
         return access_token;
     }
 

@@ -1,7 +1,7 @@
 package de.com.fdm.main;
 
-import de.com.fdm.db.services.AuthService;
-import de.com.fdm.twitch.data.AppToken;
+import de.com.fdm.twitch.AuthService;
+import de.com.fdm.twitch.data.Auth;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,12 +9,10 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 import de.com.fdm.twitch.TwitchApiProvider;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 
 @SpringBootApplication(scanBasePackages = "de.com.fdm.*")
-@EnableJpaRepositories(basePackages = "de.com.fdm.db.repositories")
 @EntityScan(basePackages = "de.com.fdm.db.data")
 @EnableScheduling
 public class Application {
@@ -25,6 +23,9 @@ public class Application {
     @Autowired
     private AuthService authService;
 
+    @Autowired
+    private SetupService setupService;
+
     public static void main(String[] args) {
         SpringApplication.run(Application.class, args);
     }
@@ -32,9 +33,10 @@ public class Application {
     @EventListener(ApplicationReadyEvent.class)
     public void generateToken() {
         if (!this.authService.hasAuth()) {
-            this.authService.clear();
-            AppToken auth = this.twitchApiProvider.generateAuth();
-            this.authService.saveApptoken(auth);
+            Auth auth = this.twitchApiProvider.generateAuth();
+            this.authService.saveAuth(auth);
         }
+
+        setupService.init();
     }
 }

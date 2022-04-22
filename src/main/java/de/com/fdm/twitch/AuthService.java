@@ -5,7 +5,6 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuthService {
-    // TODO: rename AppToken
     private Auth auth;
 
     public boolean hasAuth() {
@@ -13,7 +12,7 @@ public class AuthService {
     }
 
     public void saveAuth(Auth auth) {
-        this.auth= auth;
+        this.auth = auth;
     }
 
     public Auth getAuth() {

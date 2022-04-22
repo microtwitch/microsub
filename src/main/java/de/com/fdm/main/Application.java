@@ -1,5 +1,6 @@
 package de.com.fdm.main;
 
+import de.com.fdm.main.init.SetupService;
 import de.com.fdm.twitch.AuthService;
 import de.com.fdm.twitch.data.Auth;
 import org.springframework.beans.factory.annotation.Autowired;

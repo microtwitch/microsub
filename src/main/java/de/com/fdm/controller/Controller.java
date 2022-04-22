@@ -2,17 +2,17 @@ package de.com.fdm.controller;
 
 import com.google.gson.Gson;
 import de.com.fdm.auth.AuthProvider;
+import de.com.fdm.config.ConfigProperties;
 import de.com.fdm.eventsub.EventsubConsumer;
-import de.com.fdm.eventsub.EventsubService;
 import de.com.fdm.twitch.data.FollowEvent;
 import de.com.fdm.twitch.data.SubEvent;
+import org.apache.commons.codec.digest.HmacAlgorithms;
+import org.apache.commons.codec.digest.HmacUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 @RestController
@@ -26,7 +26,7 @@ public class Controller {
     private EventsubConsumer eventsubConsumer;
 
     @Autowired
-    private EventsubService eventsubService;
+    private ConfigProperties config;
 
     @GetMapping("/auth/url")
     public String getAuthUrl() {
@@ -42,18 +42,13 @@ public class Controller {
             return followEvent.getChallenge();
         }
 
-        System.out.println("test1");
-
-        if (!verifySignature(body, headers, followEvent.getSubscription().getId())) {
+        if (!verifySignature(body, headers)) {
             return "";
         }
-
-        System.out.println("test2");
 
         logger.info("Eventsub payload received: {}", body);
 
         eventsubConsumer.consume(followEvent);
-
         return "";
     }
 
@@ -66,7 +61,7 @@ public class Controller {
             return subEvent.getChallenge();
         }
 
-        if (!verifySignature(body, headers, subEvent.getSubscription().getId())) {
+        if (!verifySignature(body, headers)) {
             return "";
         }
 
@@ -77,18 +72,11 @@ public class Controller {
         return "";
     }
 
-    private boolean verifySignature(String request, Map<String, String> headers, String id) {
+    private boolean verifySignature(String request, Map<String, String> headers) {
         String hmacMessage = this.getHmacMessage(request, headers);
-        String secret = this.eventsubService.getSecret(id);
-        MessageDigest digest;
-        try {
-            digest = MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            return false;
-        }
-        digest.update(secret.getBytes());
-        String hmac = "sha256=" + digest.digest(hmacMessage.getBytes()).toString();
-        return hmac.equals(headers.get("twitch-eventsub-message-signature"));
+        String secret = config.getSecret();
+        String hash = "sha256=" + new HmacUtils(HmacAlgorithms.HMAC_SHA_256, secret).hmacHex(hmacMessage);
+        return hash.equals(headers.get("twitch-eventsub-message-signature"));
     }
 
     private String getHmacMessage(String rawRequest, Map<String, String> headers) {

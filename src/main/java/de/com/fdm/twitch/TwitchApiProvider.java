@@ -128,7 +128,6 @@ public class TwitchApiProvider {
 
     public void deleteAllEventsubs() {
         EventSub eventSubs = getEventsubs();
-        System.out.println(eventSubs);
         for (EventSub.Data sub: eventSubs.getData()) {
             deleteEventsub(sub.getId());
         }

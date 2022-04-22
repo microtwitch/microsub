@@ -1,4 +1,4 @@
-package de.com.fdm.main;
+package de.com.fdm.main.init;
 
 import de.com.fdm.twitch.TwitchApiProvider;
 import de.com.fdm.twitch.data.Type;
@@ -13,7 +13,8 @@ public class SetupService {
     private TwitchApiProvider twitchApiProvider;
 
     public void init() {
+        // TODO: change to correct ID
         twitchApiProvider.deleteAllEventsubs();
-        twitchApiProvider.registerEventsub(Type.FOLLOW, TURTOISE_ID);
+        twitchApiProvider.registerEventsub(Type.FOLLOW, "116672490");
     }
 }

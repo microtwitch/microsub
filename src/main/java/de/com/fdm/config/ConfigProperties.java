@@ -20,6 +20,17 @@ public class ConfigProperties {
     @Value("${eventsub.url}")
     private String url;
 
+    @Value("${turtoise.auth}")
+    private String turtoiseAuth;
+
+    public String getTurtoiseAuth() {
+        return turtoiseAuth;
+    }
+
+    public void setTurtoiseAuth(String turtoiseAuth) {
+        this.turtoiseAuth = turtoiseAuth;
+    }
+
     public String getClientId() {
         return clientId;
     }

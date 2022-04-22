@@ -2,7 +2,6 @@ package de.com.fdm.twitch;
 
 import com.google.gson.Gson;
 import de.com.fdm.config.ConfigProperties;
-import de.com.fdm.eventsub.EventsubService;
 import de.com.fdm.twitch.data.Auth;
 import de.com.fdm.twitch.data.EventSub;
 import de.com.fdm.twitch.data.EventsubRegistration;
@@ -28,9 +27,6 @@ public class TwitchApiProvider {
 
     @Autowired
     private AuthService authService;
-
-    @Autowired
-    private EventsubService eventsubService;
 
     public TwitchApiProvider() {
         this.restTemplate = new RestTemplate();
@@ -70,10 +66,7 @@ public class TwitchApiProvider {
         String registrationJson = gson.toJson(registration);
         HttpEntity<String> entity = new HttpEntity<>(registrationJson, headers);
 
-        ResponseEntity<EventsubRegistrationResponse> result = restTemplate.exchange(TWITCH_EVENTSUB_URL, HttpMethod.POST, entity, EventsubRegistrationResponse.class);
-
-        EventsubRegistrationResponse eventsubRegistrationResponse = result.getBody();
-        eventsubService.setSecret(userId, eventsubRegistrationResponse.getSecret());
+        restTemplate.exchange(TWITCH_EVENTSUB_URL, HttpMethod.POST, entity, EventsubRegistrationResponse.class);
     }
 
     private EventSub getEventsubs() {

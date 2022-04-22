@@ -24,6 +24,7 @@ dependencies {
     implementation('javax.xml.bind:jaxb-api:2.4.0-b180830.0359')
     implementation('com.google.code.gson:gson:2.8.9')
     implementation 'commons-codec:commons-codec:1.15'
+    implementation('com.github.twitch4j:twitch4j:1.9.0')
 }
 
 test {

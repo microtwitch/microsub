@@ -15,12 +15,12 @@ import java.util.List;
 
 @Service
 public class EventsubConsumer {
-    private TwitchClient client;
+    private final TwitchClient client;
 
-    private List<String> pastFollows;
+    private final List<String> pastFollows;
 
     public EventsubConsumer(@Autowired ConfigProperties config) {
-        this.pastFollows = new ArrayList<>();
+        this.pastFollows = new ArrayList<>(10);
 
         OAuth2Credential credentials = new OAuth2Credential("twitch", config.getTurtoiseAuth());
         this.client = TwitchClientBuilder.builder()
@@ -30,16 +30,24 @@ public class EventsubConsumer {
     }
 
     public void consume(FollowEvent followEvent) {
-        // TODO: ratelimiting
+        if (pastFollows.contains(followEvent.getEvent().getUser_id())) {
+            return;
+        }
+
+        if (pastFollows.size() == 10) {
+            pastFollows.remove(0);
+        }
+
+        pastFollows.add(followEvent.getEvent().getUser_id());
 
         String msg = "PagChomp OH SHIT %s THANKS FOR THE FOLLOW!";
         msg = String.format(msg, followEvent.getEvent().getUser_name());
-        client.getChat().sendMessage("matthewde", msg);
+        client.getChat().sendMessage("turtoise", msg);
     }
 
     public void consume(SubEvent subEvent) {
         String msg = "heCrazy YOOO %s THANKS FOR SUBBING!";
         msg = String.format(msg, subEvent.getEvent().getUser_name());
-        client.getChat().sendMessage("matthewde", msg);
+        client.getChat().sendMessage("turtoise", msg);
     }
 }

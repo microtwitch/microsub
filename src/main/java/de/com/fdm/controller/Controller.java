@@ -1,7 +1,6 @@
 package de.com.fdm.controller;
 
 import com.google.gson.Gson;
-import de.com.fdm.auth.AuthProvider;
 import de.com.fdm.config.ConfigProperties;
 import de.com.fdm.eventsub.EventsubConsumer;
 import de.com.fdm.twitch.data.FollowEvent;
@@ -20,18 +19,10 @@ public class Controller {
     Logger logger = LoggerFactory.getLogger(Controller.class);
 
     @Autowired
-    private AuthProvider authProvider;
-
-    @Autowired
     private EventsubConsumer eventsubConsumer;
 
     @Autowired
     private ConfigProperties config;
-
-    @GetMapping("/auth/url")
-    public String getAuthUrl() {
-        return this.authProvider.getAuthUrl();
-    }
 
     @PostMapping("/follow")
     public String followEvents(@RequestBody String body, @RequestHeader Map<String, String> headers) {

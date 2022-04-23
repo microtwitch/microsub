@@ -13,8 +13,8 @@ public class SetupService {
     private TwitchApiProvider twitchApiProvider;
 
     public void init() {
-        // TODO: change to correct ID
         twitchApiProvider.deleteAllEventsubs();
-        twitchApiProvider.registerEventsub(Type.FOLLOW, "116672490");
+        twitchApiProvider.registerEventsub(Type.FOLLOW, TURTOISE_ID);
+        twitchApiProvider.registerEventsub(Type.SUB, TURTOISE_ID);
     }
 }

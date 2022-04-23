@@ -2,8 +2,12 @@ package de.com.fdm.controller;
 
 import de.com.fdm.config.ConfigProperties;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.net.URI;
 
 @RestController
 public class AuthController {
@@ -13,8 +17,8 @@ public class AuthController {
     @Autowired
     private ConfigProperties config;
 
-    @GetMapping("/auth/url")
-    public String getAuthUrl() {
+    @GetMapping("/auth")
+    public ResponseEntity<Void> getAuthUrl() {
         String url = String.format(
                 EVENTSUB_TWITCH_URL,
                 config.getClientId(),
@@ -22,7 +26,9 @@ public class AuthController {
 
         url = url.concat("channel:read:subscriptions");
 
-        return url;
+        return ResponseEntity.status(HttpStatus.FOUND)
+                .location(URI.create(url))
+                .build();
     }
 
     @GetMapping("/auth/redirect")

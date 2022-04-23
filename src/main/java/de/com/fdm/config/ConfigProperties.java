@@ -14,11 +14,19 @@ public class ConfigProperties {
     @Value("${eventsub.clientSecret}")
     private String clientSecret;
 
-    @Value("${auth.url}")
-    private String authUrl;
-
     @Value("${eventsub.url}")
     private String url;
+
+    @Value("${turtoise.auth}")
+    private String turtoiseAuth;
+
+    public String getTurtoiseAuth() {
+        return turtoiseAuth;
+    }
+
+    public void setTurtoiseAuth(String turtoiseAuth) {
+        this.turtoiseAuth = turtoiseAuth;
+    }
 
     public String getClientId() {
         return clientId;
@@ -42,14 +50,6 @@ public class ConfigProperties {
 
     public void setClientSecret(String clientSecret) {
         this.clientSecret = clientSecret;
-    }
-
-    public String getAuthUrl() {
-        return authUrl;
-    }
-
-    public void setAuthUrl(String authUrl) {
-        this.authUrl = authUrl;
     }
 
     public String getUrl() {

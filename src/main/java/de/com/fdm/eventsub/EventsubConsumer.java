@@ -47,6 +47,10 @@ public class EventsubConsumer {
 
     public void consume(SubEvent subEvent) {
         String msg = "heCrazy YOOO %s THANKS FOR SUBBING!";
+        if (subEvent.getEvent().isGift()) {
+            msg = "heCrazy YOOO %s YOU JUST GOT GIFTED!";
+        }
+
         msg = String.format(msg, subEvent.getEvent().getUser_name());
         client.getChat().sendMessage("turtoise", msg);
     }

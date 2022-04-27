@@ -4,17 +4,21 @@ import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.TwitchClientBuilder;
 import de.com.fdm.config.ConfigProperties;
+import de.com.fdm.controller.Controller;
 import de.com.fdm.twitch.data.FollowEvent;
 import de.com.fdm.twitch.data.SubEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 
 @Service
 public class EventsubConsumer {
+    Logger logger = LoggerFactory.getLogger(EventsubConsumer.class);
+
     private final TwitchClient client;
 
     private final List<String> pastFollows;
@@ -30,6 +34,7 @@ public class EventsubConsumer {
     }
 
     public void consume(FollowEvent followEvent) {
+        logger.info(followEvent.toString());
         if (pastFollows.contains(followEvent.getEvent().getUser_id())) {
             return;
         }
@@ -46,6 +51,7 @@ public class EventsubConsumer {
     }
 
     public void consume(SubEvent subEvent) {
+        logger.info(subEvent.toString());
         String msg = "heCrazy YOOO %s THANKS FOR SUBBING!";
         if (subEvent.getEvent().isGift()) {
             msg = "heCrazy YOOO %s YOU JUST GOT GIFTED!";

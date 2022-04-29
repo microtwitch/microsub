@@ -45,7 +45,7 @@ public class Controller {
 
     @PostMapping("/sub")
     public String subEvents(@RequestBody String body, @RequestHeader Map<String, String> headers) {
-        System.out.println(body);
+        logger.info(body);
         Gson gson = new Gson();
         SubEvent subEvent = gson.fromJson(body, SubEvent.class);
 

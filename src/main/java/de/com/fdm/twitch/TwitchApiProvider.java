@@ -2,6 +2,7 @@ package de.com.fdm.twitch;
 
 import com.google.gson.Gson;
 import de.com.fdm.config.ConfigProperties;
+import de.com.fdm.config.SecretStore;
 import de.com.fdm.twitch.data.Auth;
 import de.com.fdm.twitch.data.EventSub;
 import de.com.fdm.twitch.data.EventsubRegistration;
@@ -25,10 +26,15 @@ public class TwitchApiProvider {
     @Autowired
     private ConfigProperties config;
 
+    private final String secret;
+
     @Autowired
     private AuthService authService;
 
-    public TwitchApiProvider() {
+    public TwitchApiProvider(
+            @Autowired SecretStore secretStore
+    ) {
+        this.secret = secretStore.getSecret();
         this.restTemplate = new RestTemplate();
     }
 
@@ -53,7 +59,7 @@ public class TwitchApiProvider {
             callbackUrl = callbackUrl + "sub";
         }
 
-        EventsubRegistration registration = new EventsubRegistration(getTwitchType(type), "1", userId, callbackUrl, config.getSecret());
+        EventsubRegistration registration = new EventsubRegistration(getTwitchType(type), "1", userId, callbackUrl, secret);
 
         Auth auth = authService.getAuth();
 

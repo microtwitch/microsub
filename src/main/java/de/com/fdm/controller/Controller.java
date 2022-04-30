@@ -1,7 +1,7 @@
 package de.com.fdm.controller;
 
 import com.google.gson.Gson;
-import de.com.fdm.config.ConfigProperties;
+import de.com.fdm.config.SecretStore;
 import de.com.fdm.eventsub.EventsubConsumer;
 import de.com.fdm.twitch.data.FollowEvent;
 import de.com.fdm.twitch.data.SubEvent;
@@ -10,6 +10,8 @@ import org.apache.commons.codec.digest.HmacUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
@@ -18,11 +20,16 @@ import java.util.Map;
 public class Controller {
     Logger logger = LoggerFactory.getLogger(Controller.class);
 
-    @Autowired
-    private EventsubConsumer eventsubConsumer;
+    private final EventsubConsumer eventsubConsumer;
+    private final String secret;
 
-    @Autowired
-    private ConfigProperties config;
+    public Controller(
+            @Autowired EventsubConsumer eventsubConsumer,
+            @Autowired SecretStore secretStore
+    ) {
+        this.eventsubConsumer = eventsubConsumer;
+        this.secret = secretStore.getSecret();
+    }
 
     @PostMapping("/follow")
     public String followEvents(@RequestBody String body, @RequestHeader Map<String, String> headers) {
@@ -44,29 +51,28 @@ public class Controller {
     }
 
     @PostMapping("/sub")
-    public String subEvents(@RequestBody String body, @RequestHeader Map<String, String> headers) {
+    public ResponseEntity<String> subEvents(@RequestBody String body, @RequestHeader Map<String, String> headers) {
         logger.info(body);
         Gson gson = new Gson();
         SubEvent subEvent = gson.fromJson(body, SubEvent.class);
 
         if (subEvent.getChallenge() != null) {
-            return subEvent.getChallenge();
+            return new ResponseEntity<>(subEvent.getChallenge(), HttpStatus.OK);
         }
 
         if (!verifySignature(body, headers)) {
-            return "";
+            return new ResponseEntity<>("", HttpStatus.FORBIDDEN);
         }
 
         logger.info("Eventsub payload received: {}", body);
 
         eventsubConsumer.consume(subEvent);
 
-        return "";
+        return new ResponseEntity<>("", HttpStatus.OK);
     }
 
     private boolean verifySignature(String request, Map<String, String> headers) {
         String hmacMessage = this.getHmacMessage(request, headers);
-        String secret = config.getSecret();
         String hash = "sha256=" + new HmacUtils(HmacAlgorithms.HMAC_SHA_256, secret).hmacHex(hmacMessage);
         return hash.equals(headers.get("twitch-eventsub-message-signature"));
     }

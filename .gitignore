@@ -2,5 +2,6 @@
 .idea
 /build
 src/main/resources/application.yml
+src/test/resources/application.yml
 scripts/delete_sub.sh
 scripts/get_subs.sh

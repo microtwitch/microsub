@@ -1,21 +1,20 @@
 package de.com.fdm.main;
 
+
 import de.com.fdm.main.init.SetupService;
 import de.com.fdm.twitch.AuthService;
+import de.com.fdm.twitch.TwitchApiProvider;
 import de.com.fdm.twitch.data.Auth;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
-import de.com.fdm.twitch.TwitchApiProvider;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
 
 @SpringBootApplication(scanBasePackages = "de.com.fdm.*")
 @EnableScheduling
-public class Application {
-
+public class TestApplication {
     @Autowired
     private TwitchApiProvider twitchApiProvider;
 

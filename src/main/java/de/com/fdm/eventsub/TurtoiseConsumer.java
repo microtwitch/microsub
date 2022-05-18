@@ -1,13 +1,11 @@
 package de.com.fdm.eventsub;
 
-import com.github.philippheuer.credentialmanager.domain.OAuth2Credential;
-import com.github.twitch4j.TwitchClient;
-import com.github.twitch4j.TwitchClientBuilder;
+import de.com.fdm.twitch.TmiService;
 import de.com.fdm.twitch.data.FollowEvent;
 import de.com.fdm.twitch.data.SubEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -17,18 +15,12 @@ import java.util.List;
 public class TurtoiseConsumer implements EventsubConsumer {
     Logger logger = LoggerFactory.getLogger(TurtoiseConsumer.class);
 
-    private final TwitchClient client;
-
     private final List<String> pastFollows;
+    private final TmiService tmiService;
 
-    public TurtoiseConsumer(@Value("${turtoise.auth}") String turtoiseAuth) {
+    public TurtoiseConsumer(@Autowired TmiService tmiService) {
         this.pastFollows = new ArrayList<>(10);
-
-        OAuth2Credential credentials = new OAuth2Credential("twitch", turtoiseAuth);
-        this.client = TwitchClientBuilder.builder()
-                .withEnableChat(true)
-                .withChatAccount(credentials)
-                .build();
+        this.tmiService = tmiService;
     }
 
     @Override
@@ -46,7 +38,7 @@ public class TurtoiseConsumer implements EventsubConsumer {
 
         String msg = "PagChomp OH SHIT %s THANKS FOR THE FOLLOW!";
         msg = String.format(msg, followEvent.getEvent().getUser_name());
-        client.getChat().sendMessage("turtoise", msg);
+        tmiService.send("turtoise", msg);
     }
 
     @Override
@@ -55,7 +47,7 @@ public class TurtoiseConsumer implements EventsubConsumer {
         String msg = getAlertMessage(subEvent);
 
         msg = String.format(msg, subEvent.getEvent().getUser_name());
-        client.getChat().sendMessage("turtoise", msg);
+        tmiService.send("turtoise", msg);
     }
 
     private String getAlertMessage(SubEvent subEvent) {

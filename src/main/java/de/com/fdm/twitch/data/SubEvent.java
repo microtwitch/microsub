@@ -51,7 +51,7 @@ public class SubEvent {
         private String broadcaster_user_login;
         private String broadcaster_user_name;
         private String tier;
-        private boolean isGift;
+        private boolean is_gift;
 
         public String getUser_id() {
             return user_id;
@@ -102,11 +102,11 @@ public class SubEvent {
         }
 
         public boolean isGift() {
-            return isGift;
+            return is_gift;
         }
 
-        public void setGift(boolean gift) {
-            isGift = gift;
+        public void setIs_gift(boolean gift) {
+            is_gift = gift;
         }
 
         @Override
@@ -119,7 +119,7 @@ public class SubEvent {
                     ", broadcaster_user_login='" + broadcaster_user_login + '\'' +
                     ", broadcaster_user_name='" + broadcaster_user_name + '\'' +
                     ", tier='" + tier + '\'' +
-                    ", isGift=" + isGift +
+                    ", isGift=" + is_gift +
                     '}';
         }
     }

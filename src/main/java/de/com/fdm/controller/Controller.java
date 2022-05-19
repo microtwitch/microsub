@@ -44,7 +44,8 @@ public class Controller {
             return "";
         }
 
-        logger.info("Eventsub event received: {}", body.replaceAll("[\n\r\t]", "_"));
+        body = body.replaceAll("[\n\r\t]", "_");
+        logger.info("Eventsub event received: {}", body);
 
         eventsubConsumer.consume(followEvent);
         return "";
@@ -63,7 +64,8 @@ public class Controller {
             return new ResponseEntity<>("", HttpStatus.FORBIDDEN);
         }
 
-        logger.info("Eventsub event received: {}", body.replaceAll("[\n\r\t]", "_"));
+        body = body.replaceAll("[\n\r\t]", "_");
+        logger.info("Eventsub event received: {}", body);
 
         eventsubConsumer.consume(subEvent);
 

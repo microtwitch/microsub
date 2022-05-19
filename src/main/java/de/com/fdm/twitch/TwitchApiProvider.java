@@ -84,7 +84,7 @@ public class TwitchApiProvider {
 
     public boolean isInvalid(Auth auth) {
         HttpHeaders headers = new HttpHeaders();
-        headers.set("Authorization", "Bearer " + auth.getAccessToken());
+        headers.set("Authorization", "Bearer " + auth.accessToken());
 
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
         try {
@@ -119,7 +119,7 @@ public class TwitchApiProvider {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         headers.set("Client-Id", config.getClientId());
-        headers.set("Authorization", "Bearer " + auth.getAccessToken());
+        headers.set("Authorization", "Bearer " + auth.accessToken());
         return headers;
     }
 }

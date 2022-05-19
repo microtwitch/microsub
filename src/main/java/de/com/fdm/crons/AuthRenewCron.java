@@ -20,7 +20,7 @@ public class AuthRenewCron {
     @Scheduled(timeUnit = TimeUnit.SECONDS, fixedRate = 30, initialDelay = 30)
     public void renewAuth() {
         Auth auth = authService.getAuth();
-        boolean expire = auth.getExpiresIn() > 300;
+        boolean expire = auth.expiresIn() > 300;
         boolean invalid = twitchApiProvider.isInvalid(auth);
 
         if (expire || invalid) {

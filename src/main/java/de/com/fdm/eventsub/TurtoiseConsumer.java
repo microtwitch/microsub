@@ -25,7 +25,7 @@ public class TurtoiseConsumer implements EventsubConsumer {
 
     @Override
     public void consume(FollowEvent followEvent) {
-        logger.info(followEvent.toString());
+        logger.info("{}", followEvent);
         if (pastFollows.contains(followEvent.getEvent().getUser_id())) {
             return;
         }
@@ -43,7 +43,7 @@ public class TurtoiseConsumer implements EventsubConsumer {
 
     @Override
     public void consume(SubEvent subEvent) {
-        logger.info(subEvent.toString());
+        logger.info("{}", subEvent);
         String msg = getAlertMessage(subEvent);
 
         msg = String.format(msg, subEvent.getEvent().getUser_name());

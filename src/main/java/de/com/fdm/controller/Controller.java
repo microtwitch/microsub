@@ -44,7 +44,7 @@ public class Controller {
             return "";
         }
 
-        logger.info("Eventsub payload received: {}", body);
+        logger.info("Eventsub event received: {}", body.replaceAll("[\n\r\t]", "_"));
 
         eventsubConsumer.consume(followEvent);
         return "";
@@ -52,7 +52,6 @@ public class Controller {
 
     @PostMapping("/sub")
     public ResponseEntity<String> subEvents(@RequestBody String body, @RequestHeader Map<String, String> headers) {
-        logger.info(body);
         Gson gson = new Gson();
         SubEvent subEvent = gson.fromJson(body, SubEvent.class);
 
@@ -64,7 +63,7 @@ public class Controller {
             return new ResponseEntity<>("", HttpStatus.FORBIDDEN);
         }
 
-        logger.info("Eventsub payload received: {}", body);
+        logger.info("Eventsub event received: {}", body.replaceAll("[\n\r\t]", "_"));
 
         eventsubConsumer.consume(subEvent);
 

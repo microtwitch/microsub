@@ -22,7 +22,6 @@ public class TwitchApiProvider {
     private static final String VALIDATE_URL = "https://id.twitch.tv/oauth2/validate";
 
     private final RestTemplate restTemplate;
-
     @Autowired
     private ConfigProperties config;
 
@@ -127,6 +126,10 @@ public class TwitchApiProvider {
 
     public void deleteAllEventsubs() {
         EventSub eventSubs = getEventsubs();
+        if (eventSubs == null) {
+            return;
+        }
+
         for (EventSub.Data sub: eventSubs.getData()) {
             deleteEventsub(sub.getId());
         }

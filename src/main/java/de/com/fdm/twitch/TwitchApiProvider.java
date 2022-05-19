@@ -60,46 +60,25 @@ public class TwitchApiProvider {
 
         EventsubRegistration registration = new EventsubRegistration(getTwitchType(type), "1", userId, callbackUrl, secret);
 
-        Auth auth = authService.getAuth();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Client-Id", config.getClientId());
-        headers.set("Authorization", "Bearer " + auth.getAccessToken());
-
         Gson gson = new Gson();
         String registrationJson = gson.toJson(registration);
+        HttpHeaders headers = getHeaders();
         HttpEntity<String> entity = new HttpEntity<>(registrationJson, headers);
 
         restTemplate.exchange(TWITCH_EVENTSUB_URL, HttpMethod.POST, entity, EventsubRegistrationResponse.class);
     }
 
     private EventSub getEventsubs() {
-        Auth auth = authService.getAuth();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Client-Id", config.getClientId());
-        headers.set("Authorization", "Bearer " + auth.getAccessToken());
-
+        HttpHeaders headers = getHeaders();
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
-
         ResponseEntity<EventSub> response = restTemplate.exchange(TWITCH_EVENTSUB_URL, HttpMethod.GET, entity, EventSub.class);
         return response.getBody();
     }
 
     public void deleteEventsub(String id) {
-        Auth auth = authService.getAuth();
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Client-Id", config.getClientId());
-        headers.set("Authorization", "Bearer " + auth.getAccessToken());
-
+        HttpHeaders headers = getHeaders();
         HttpEntity<String> entity = new HttpEntity<>(null, headers);
-
         String deletionUrl = TWITCH_EVENTSUB_URL + "?id=" + id;
-
         restTemplate.exchange(deletionUrl, HttpMethod.DELETE, entity, String.class);
     }
 
@@ -133,5 +112,14 @@ public class TwitchApiProvider {
         for (EventSub.Data sub: eventSubs.getData()) {
             deleteEventsub(sub.getId());
         }
+    }
+
+    private HttpHeaders getHeaders() {
+        Auth auth = authService.getAuth();
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("Client-Id", config.getClientId());
+        headers.set("Authorization", "Bearer " + auth.getAccessToken());
+        return headers;
     }
 }

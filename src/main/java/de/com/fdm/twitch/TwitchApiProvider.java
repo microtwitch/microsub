@@ -33,7 +33,7 @@ public class TwitchApiProvider {
     public TwitchApiProvider(
             @Autowired SecretStore secretStore
     ) {
-        this.secret = secretStore.getSecret();
+        this.secret = secretStore.secret();
         this.restTemplate = new RestTemplate();
     }
 

@@ -28,7 +28,7 @@ public class Controller {
             @Autowired SecretStore secretStore
     ) {
         this.eventsubConsumer = eventsubConsumer;
-        this.secret = secretStore.getSecret();
+        this.secret = secretStore.secret();
     }
 
     @PostMapping("/follow")

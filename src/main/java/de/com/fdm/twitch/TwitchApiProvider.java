@@ -1,13 +1,14 @@
 package de.com.fdm.twitch;
 
-import com.google.gson.Gson;
-import de.com.fdm.config.ConfigProperties;
-import de.com.fdm.config.SecretStore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.com.fdm.config.EventsubProps;
 import de.com.fdm.twitch.data.Auth;
 import de.com.fdm.twitch.data.EventSub;
 import de.com.fdm.twitch.data.EventsubRegistration;
-import de.com.fdm.twitch.data.EventsubRegistrationResponse;
 import de.com.fdm.twitch.data.Type;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -21,24 +22,23 @@ public class TwitchApiProvider {
     private static final String TWITCH_EVENTSUB_URL = "https://api.twitch.tv/helix/eventsub/subscriptions";
     private static final String VALIDATE_URL = "https://id.twitch.tv/oauth2/validate";
 
+    Logger logger = LoggerFactory.getLogger(TwitchApiProvider.class);
+
     private final RestTemplate restTemplate;
+    private final ObjectMapper mapper;
+    private final AuthService authService;
+    private final EventsubProps eventsubProps;
+
     @Autowired
-    private ConfigProperties config;
-
-    private final String secret;
-
-    @Autowired
-    private AuthService authService;
-
-    public TwitchApiProvider(
-            @Autowired SecretStore secretStore
-    ) {
-        this.secret = secretStore.secret();
+    public TwitchApiProvider(EventsubProps eventsubProps, AuthService authService) {
+        this.authService = authService;
+        this.eventsubProps = eventsubProps;
         this.restTemplate = new RestTemplate();
+        this.mapper = new ObjectMapper();
     }
 
     public Auth generateAuth() {
-        String url = String.format(TOKEN_URL_TEMPLATE, config.getClientId(), config.getClientSecret());
+        String url = String.format(TOKEN_URL_TEMPLATE, eventsubProps.clientId(), eventsubProps.clientSecret());
 
         ResponseEntity<Auth> response = this.restTemplate.postForEntity(url, null, Auth.class);
 
@@ -49,7 +49,7 @@ public class TwitchApiProvider {
     }
 
     public void registerEventsub(Type type, String userId) {
-        String callbackUrl = config.getUrl();
+        String callbackUrl = eventsubProps.url();
         if (type == Type.FOLLOW) {
             callbackUrl = callbackUrl + "follow";
         }
@@ -58,14 +58,20 @@ public class TwitchApiProvider {
             callbackUrl = callbackUrl + "sub";
         }
 
-        EventsubRegistration registration = new EventsubRegistration(getTwitchType(type), "1", userId, callbackUrl, secret);
+        EventsubRegistration registration = new EventsubRegistration(
+                getTwitchType(type), userId, callbackUrl, eventsubProps.secret()
+        );
 
-        Gson gson = new Gson();
-        String registrationJson = gson.toJson(registration);
+        String registrationJson = null;
+        try {
+            registrationJson = mapper.writeValueAsString(registration);
+        } catch (JsonProcessingException e) {
+            logger.error(e.getMessage());
+        }
         HttpHeaders headers = getHeaders();
         HttpEntity<String> entity = new HttpEntity<>(registrationJson, headers);
 
-        restTemplate.exchange(TWITCH_EVENTSUB_URL, HttpMethod.POST, entity, EventsubRegistrationResponse.class);
+        restTemplate.postForLocation(TWITCH_EVENTSUB_URL, entity);
     }
 
     private EventSub getEventsubs() {
@@ -109,8 +115,8 @@ public class TwitchApiProvider {
             return;
         }
 
-        for (EventSub.Data sub: eventSubs.getData()) {
-            deleteEventsub(sub.getId());
+        for (EventSub.Data sub: eventSubs.data()) {
+            deleteEventsub(sub.id());
         }
     }
 
@@ -118,7 +124,7 @@ public class TwitchApiProvider {
         Auth auth = authService.getAuth();
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
-        headers.set("Client-Id", config.getClientId());
+        headers.set("Client-Id", eventsubProps.clientId());
         headers.set("Authorization", "Bearer " + auth.accessToken());
         return headers;
     }

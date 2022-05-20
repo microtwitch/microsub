@@ -1,6 +1,6 @@
 package de.com.fdm.controller;
 
-import de.com.fdm.config.SecretStore;
+import de.com.fdm.config.EventsubProps;
 import org.apache.commons.codec.digest.HmacAlgorithms;
 import org.apache.commons.codec.digest.HmacUtils;
 import org.junit.jupiter.api.Assertions;
@@ -15,21 +15,21 @@ class TestController {
 
     @Test
     void testfollowEventsChallenge() {
-        Controller controller = new Controller(new MockConsumer(), new SecretStore(TEST_SECRET));
+        Controller controller = new Controller(new MockConsumer(), new EventsubProps(null, null, TEST_SECRET, null));
         ResponseEntity<String> response = controller.subEvents(getChallengeBody(), new HashMap<>());
         Assertions.assertEquals("TEST_CHALLENGE", response.getBody());
     }
 
     @Test
     void testfollowEventsEmptyHeader() {
-        Controller controller = new Controller(new MockConsumer(), new SecretStore(TEST_SECRET));
+        Controller controller = new Controller(new MockConsumer(), new EventsubProps(null, null, TEST_SECRET, null));
         ResponseEntity<String> response = controller.subEvents(getBody(), new HashMap<>());
         Assertions.assertEquals(403, response.getStatusCodeValue());
     }
 
     @Test
     void testfollowEvents() {
-        Controller controller = new Controller(new MockConsumer(), new SecretStore(TEST_SECRET));
+        Controller controller = new Controller(new MockConsumer(), new EventsubProps(null, null, TEST_SECRET, null));
         Map<String, String> headers = getHeaders();
 
         ResponseEntity<String> response = controller.subEvents(getBody(), headers);

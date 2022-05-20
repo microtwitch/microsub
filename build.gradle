@@ -31,13 +31,13 @@ repositories {
 dependencies {
     implementation('org.springframework.boot:spring-boot-starter-web:2.6.7')
     implementation('javax.xml.bind:jaxb-api:2.4.0-b180830.0359')
-    implementation('com.google.code.gson:gson:2.9.0')
-    implementation 'commons-codec:commons-codec:1.15'
+    implementation('com.fasterxml.jackson.core:jackson-databind:2.13.3')
+    implementation('commons-codec:commons-codec:1.15')
     implementation('com.github.twitch4j:twitch4j:1.9.0')
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-    testImplementation("org.springframework.boot:spring-boot-starter-test:2.6.7")
+    testImplementation('org.junit.jupiter:junit-jupiter-api:5.8.2')
+    testImplementation('org.junit.jupiter:junit-jupiter-engine:5.8.2')
+    testImplementation('org.springframework.boot:spring-boot-starter-test:2.6.7')
 }
 
 test {

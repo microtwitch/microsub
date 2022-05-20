@@ -1,6 +1,6 @@
 package de.com.fdm.controller;
 
-import de.com.fdm.config.ConfigProperties;
+import de.com.fdm.config.EventsubProps;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -15,14 +15,14 @@ public class AuthController {
             "https://id.twitch.tv/oauth2/authorize?client_id=%s&redirect_uri=%s&response_type=code&force_verify=true&scope=";
 
     @Autowired
-    private ConfigProperties config;
+    private EventsubProps eventsubProps;
 
     @GetMapping("/auth")
     public ResponseEntity<Void> getAuthUrl() {
         String url = String.format(
                 EVENTSUB_TWITCH_URL,
-                config.getClientId(),
-                this.config.getUrl() + "auth/redirect");
+                eventsubProps.clientId(),
+                eventsubProps.url() + "auth/redirect");
 
         url = url.concat("channel:read:subscriptions");
 

@@ -7,13 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.event.EventListener;
 import de.com.fdm.twitch.TwitchApiProvider;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 
-@SpringBootApplication(scanBasePackages = "de.com.fdm.*")
+
 @EnableScheduling
+@ConfigurationPropertiesScan({ "de.com.fdm.config" })
+@SpringBootApplication(scanBasePackages = "de.com.fdm.*")
 public class Application {
 
     @Autowired

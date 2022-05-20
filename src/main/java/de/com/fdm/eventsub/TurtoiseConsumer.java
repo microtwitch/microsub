@@ -18,15 +18,16 @@ public class TurtoiseConsumer implements EventsubConsumer {
     private final List<String> pastFollows;
     private final TmiService tmiService;
 
-    public TurtoiseConsumer(@Autowired TmiService tmiService) {
+    @Autowired
+    public TurtoiseConsumer(TmiService tmiService) {
         this.pastFollows = new ArrayList<>(10);
         this.tmiService = tmiService;
     }
 
     @Override
     public void consume(FollowEvent followEvent) {
-        logger.info(followEvent.toString());
-        if (pastFollows.contains(followEvent.getEvent().getUser_id())) {
+        logger.info("{}", followEvent);
+        if (pastFollows.contains(followEvent.event().userId())) {
             return;
         }
 
@@ -34,27 +35,26 @@ public class TurtoiseConsumer implements EventsubConsumer {
             pastFollows.remove(0);
         }
 
-        pastFollows.add(followEvent.getEvent().getUser_id());
+        pastFollows.add(followEvent.event().userId());
 
         String msg = "PagChomp OH SHIT %s THANKS FOR THE FOLLOW!";
-        msg = String.format(msg, followEvent.getEvent().getUser_name());
+        msg = String.format(msg, followEvent.event().userName());
         tmiService.send("turtoise", msg);
     }
 
     @Override
     public void consume(SubEvent subEvent) {
-        logger.info(subEvent.toString());
+        logger.info("{}", subEvent);
         String msg = getAlertMessage(subEvent);
 
-        msg = String.format(msg, subEvent.getEvent().getUser_name());
+        msg = String.format(msg, subEvent.event().userName());
         tmiService.send("turtoise", msg);
     }
 
     private String getAlertMessage(SubEvent subEvent) {
-        if (subEvent.getEvent().isGift()) {
+        if (subEvent.event().isGift()) {
             return "heCrazy YOOO %s YOU JUST GOT GIFTED!";
         }
-
         return "heCrazy YOOO %s THANKS FOR SUBBING!";
     }
 }

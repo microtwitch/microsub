@@ -1,7 +1,9 @@
 package de.com.fdm.controller;
 
-import com.google.gson.Gson;
-import de.com.fdm.config.SecretStore;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.com.fdm.config.EventsubProps;
 import de.com.fdm.eventsub.EventsubConsumer;
 import de.com.fdm.twitch.data.FollowEvent;
 import de.com.fdm.twitch.data.SubEvent;
@@ -22,22 +24,28 @@ public class Controller {
 
     private final EventsubConsumer eventsubConsumer;
     private final String secret;
+    private final ObjectMapper mapper;
 
-    public Controller(
-            @Autowired EventsubConsumer eventsubConsumer,
-            @Autowired SecretStore secretStore
-    ) {
+    @Autowired
+    public Controller(EventsubConsumer eventsubConsumer, EventsubProps eventsubProps) {
         this.eventsubConsumer = eventsubConsumer;
-        this.secret = secretStore.getSecret();
+        this.secret = eventsubProps.secret();
+        this.mapper = new ObjectMapper();
+        this.mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     }
 
     @PostMapping("/follow")
     public String followEvents(@RequestBody String body, @RequestHeader Map<String, String> headers) {
-        Gson gson = new Gson();
-        FollowEvent followEvent = gson.fromJson(body, FollowEvent.class);
+        FollowEvent followEvent;
+        try {
+            followEvent = mapper.readValue(body, FollowEvent.class);
+        } catch (JsonProcessingException e) {
+            logger.error(e.getMessage());
+            throw new InternalServerErrorExpection();
+        }
 
-        if (followEvent.getChallenge() != null) {
-            return followEvent.getChallenge();
+        if (followEvent.challenge() != null) {
+            return followEvent.challenge();
         }
 
         if (!verifySignature(body, headers)) {
@@ -53,11 +61,16 @@ public class Controller {
 
     @PostMapping("/sub")
     public ResponseEntity<String> subEvents(@RequestBody String body, @RequestHeader Map<String, String> headers) {
-        Gson gson = new Gson();
-        SubEvent subEvent = gson.fromJson(body, SubEvent.class);
+        SubEvent subEvent;
+        try {
+            subEvent = mapper.readValue(body, SubEvent.class);
+        } catch (JsonProcessingException e) {
+            logger.error(e.getMessage());
+            throw new InternalServerErrorExpection();
+        }
 
-        if (subEvent.getChallenge() != null) {
-            return new ResponseEntity<>(subEvent.getChallenge(), HttpStatus.OK);
+        if (subEvent.challenge() != null) {
+            return new ResponseEntity<>(subEvent.challenge(), HttpStatus.OK);
         }
 
         if (!verifySignature(body, headers)) {

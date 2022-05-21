@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.com.fdm.config.EventsubProps;
 import de.com.fdm.eventsub.EventsubConsumer;
+import de.com.fdm.twitch.data.BitEvent;
 import de.com.fdm.twitch.data.FollowEvent;
 import de.com.fdm.twitch.data.SubEvent;
 import org.apache.commons.codec.digest.HmacAlgorithms;
@@ -21,6 +22,7 @@ import java.util.Map;
 @RestController
 public class Controller {
     Logger logger = LoggerFactory.getLogger(Controller.class);
+    private static final String CLEANUP_REGEX = "[\n\r\t]";
 
     private final EventsubConsumer eventsubConsumer;
     private final String secret;
@@ -52,8 +54,8 @@ public class Controller {
             return "";
         }
 
-        body = body.replaceAll("[\n\r\t]", "_");
-        logger.info("Eventsub event received: {}", body);
+        body = body.replaceAll(CLEANUP_REGEX, "_");
+        logger.info("{}", body);
 
         eventsubConsumer.consume(followEvent);
         return "";
@@ -77,10 +79,36 @@ public class Controller {
             return new ResponseEntity<>("", HttpStatus.FORBIDDEN);
         }
 
-        body = body.replaceAll("[\n\r\t]", "_");
-        logger.info("Eventsub event received: {}", body);
+        body = body.replaceAll(CLEANUP_REGEX, "_");
+        logger.info("{}", body);
 
         eventsubConsumer.consume(subEvent);
+
+        return new ResponseEntity<>("", HttpStatus.OK);
+    }
+
+    @PostMapping("/bits")
+    public ResponseEntity<String> bitEvents(@RequestBody String body, @RequestHeader Map<String, String> headers) {
+        BitEvent bitEvent;
+        try {
+            bitEvent = mapper.readValue(body, BitEvent.class);
+        } catch (JsonProcessingException e) {
+            logger.error(e.getMessage());
+            throw new InternalServerErrorExpection();
+        }
+
+        if (bitEvent.challenge() != null) {
+            return new ResponseEntity<>(bitEvent.challenge(), HttpStatus.OK);
+        }
+
+        if (!verifySignature(body, headers)) {
+            return new ResponseEntity<>("", HttpStatus.FORBIDDEN);
+        }
+
+        body = body.replaceAll(CLEANUP_REGEX, "_");
+        logger.info("{}", body);
+
+        eventsubConsumer.consume(bitEvent);
 
         return new ResponseEntity<>("", HttpStatus.OK);
     }

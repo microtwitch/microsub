@@ -15,6 +15,7 @@ public class TurtoiseSetupService implements SetupService {
     public void init() {
         twitchApiProvider.deleteAllEventsubs();
         twitchApiProvider.registerEventsub(Type.FOLLOW, TURTOISE_ID);
+        twitchApiProvider.registerEventsub(Type.BITS, TURTOISE_ID);
         twitchApiProvider.registerEventsub(Type.SUB, TURTOISE_ID);
     }
 }

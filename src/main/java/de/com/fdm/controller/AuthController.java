@@ -12,7 +12,7 @@ import java.net.URI;
 @RestController
 public class AuthController {
     private static final String EVENTSUB_TWITCH_URL =
-            "https://id.twitch.tv/oauth2/authorize?client_id=%s&redirect_uri=%s&response_type=code&force_verify=true&scope=";
+            "https://id.twitch.tv/oauth2/authorize?client_id=%s&redirect_uri=%s&response_type=code&force_verify=true&scope=channel:read:subscriptions bits:read";
 
     @Autowired
     private EventsubProps eventsubProps;
@@ -24,7 +24,7 @@ public class AuthController {
                 eventsubProps.clientId(),
                 eventsubProps.url() + "auth/redirect");
 
-        url = url.concat("channel:read:subscriptions");
+        url = url.replace(" ", "%20");
 
         return ResponseEntity.status(HttpStatus.FOUND)
                 .location(URI.create(url))

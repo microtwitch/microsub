@@ -58,6 +58,10 @@ public class TwitchApiProvider {
             callbackUrl = callbackUrl + "sub";
         }
 
+        if (type == Type.BITS) {
+            callbackUrl = callbackUrl + "bits";
+        }
+
         EventsubRegistration registration = new EventsubRegistration(
                 getTwitchType(type), userId, callbackUrl, eventsubProps.secret()
         );
@@ -104,6 +108,10 @@ public class TwitchApiProvider {
     private String getTwitchType(Type type) {
         if (type == Type.FOLLOW) {
             return "channel.follow";
+        }
+
+        if (type == Type.BITS) {
+            return "channel.cheer";
         }
 
         return "channel.subscribe";

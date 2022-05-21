@@ -13,7 +13,7 @@ public record BitEvent(
                 boolean isAnon,
                 @JsonProperty("user_name")
                 String userName,
-                @JsonProperty("btis")
+                @JsonProperty("bits")
                 int bits
         ) {}
 }

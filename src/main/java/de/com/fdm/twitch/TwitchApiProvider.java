@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @Component
@@ -75,7 +76,11 @@ public class TwitchApiProvider {
         HttpHeaders headers = getHeaders();
         HttpEntity<String> entity = new HttpEntity<>(registrationJson, headers);
 
-        restTemplate.postForLocation(TWITCH_EVENTSUB_URL, entity);
+        try {
+            restTemplate.postForLocation(TWITCH_EVENTSUB_URL, entity);
+        } catch (RestClientException e) {
+            logger.error(e.getMessage());
+        }
     }
 
     private EventSub getEventsubs() {

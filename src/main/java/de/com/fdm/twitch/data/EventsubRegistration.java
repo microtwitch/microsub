@@ -8,8 +8,6 @@ public record EventsubRegistration(
         Condition condition,
         Transport transport
 ) {
-
-
     public EventsubRegistration(String type, String broadcasterId, String callback, String secret) {
         this(type, "1", new Condition(broadcasterId), new Transport(callback, secret));
     }

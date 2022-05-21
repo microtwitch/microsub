@@ -11,11 +11,14 @@ import java.util.concurrent.TimeUnit;
 
 @Component
 public class AuthRenewCron {
-    @Autowired
-    private AuthService authService;
+    private final AuthService authService;
+    private final TwitchApiProvider twitchApiProvider;
 
     @Autowired
-    private TwitchApiProvider twitchApiProvider;
+    public AuthRenewCron(AuthService authService, TwitchApiProvider twitchApiProvider) {
+        this.authService = authService;
+        this.twitchApiProvider = twitchApiProvider;
+    }
 
     @Scheduled(timeUnit = TimeUnit.SECONDS, fixedRate = 30, initialDelay = 30)
     public void renewAuth() {

@@ -14,8 +14,12 @@ public class AuthController {
     private static final String EVENTSUB_TWITCH_URL =
             "https://id.twitch.tv/oauth2/authorize?client_id=%s&redirect_uri=%s&response_type=code&force_verify=true&scope=channel:read:subscriptions bits:read";
 
+    private final EventsubProps eventsubProps;
+
     @Autowired
-    private EventsubProps eventsubProps;
+    public AuthController(EventsubProps eventsubProps) {
+        this.eventsubProps = eventsubProps;
+    }
 
     @GetMapping("/auth")
     public ResponseEntity<Void> getAuthUrl() {

@@ -8,9 +8,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class TurtoiseSetupService implements SetupService {
     private static final String TURTOISE_ID = "80805824";
+    private final TwitchApiProvider twitchApiProvider;
 
     @Autowired
-    private TwitchApiProvider twitchApiProvider;
+    public TurtoiseSetupService(TwitchApiProvider twitchApiProvider) {
+        this.twitchApiProvider = twitchApiProvider;
+    }
 
     public void init() {
         twitchApiProvider.deleteAllEventsubs();

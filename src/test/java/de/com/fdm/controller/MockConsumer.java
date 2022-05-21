@@ -1,6 +1,7 @@
 package de.com.fdm.controller;
 
 import de.com.fdm.eventsub.EventsubConsumer;
+import de.com.fdm.twitch.data.BitEvent;
 import de.com.fdm.twitch.data.FollowEvent;
 import de.com.fdm.twitch.data.SubEvent;
 import org.slf4j.Logger;
@@ -22,5 +23,10 @@ public class MockConsumer implements EventsubConsumer {
     @Override
     public void consume(SubEvent subEvent) {
         logger.info(subEvent.toString());
+    }
+
+    @Override
+    public void consume(BitEvent bitEvent) {
+
     }
 }
